@@ -1,0 +1,46 @@
+services:
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: logsentinel_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel_password
+      POSTGRES_DB: logsentinel_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d logsentinel_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sentinel_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: logsentinel_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://sentinel:sentinel_password@postgres_db:5432/logsentinel_db
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+      ABUSEIPDB_API_KEY: ${ABUSEIPDB_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - sentinel_net
+
+volumes:
+  postgres_data:
+
+networks:
+  sentinel_net:
+    driver: bridge
