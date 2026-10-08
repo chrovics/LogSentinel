@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ro" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | LogSentinel SOC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { brand: '#6366f1', darkbg: '#070B14' } } }
+    }
+  </script>
+</head>
+<body class="bg-darkbg text-slate-300 h-screen flex flex-col items-center justify-center selection:bg-brand selection:text-white">
+
+  <!-- Logo -->
+  <div class="mb-8 text-center animate-[fadeIn_0.5s_ease-out]">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#4f46e5] to-indigo-900 border border-[#6366f1]/30 shadow-[0_0_30px_rgba(99,102,241,0.3)] mb-4">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+    </div>
+    <h1 class="text-3xl font-black text-white tracking-tight">LOG<span class="text-brand">SENTINEL</span></h1>
+    <p class="text-sm text-slate-500 mt-2 tracking-widest uppercase">Restricted Access Area</p>
+  </div>
+
+  <!-- Login Box -->
+  <div class="bg-[#0B1221]/80 backdrop-blur-xl border border-white/5 p-8 rounded-3xl shadow-2xl w-full max-w-md animate-[slideIn_0.4s_ease-out_forwards]">
+    <form id="loginForm" class="space-y-6">
+      <div id="errorBox" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold px-4 py-3 rounded-xl text-center"></div>
+      
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Operator ID</label>
+        <input type="text" id="username" class="w-full bg-[#070B14] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition" placeholder="admin" required>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Access Key</label>
+        <input type="password" id="password" class="w-full bg-[#070B14] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full bg-brand hover:bg-[#4f46e5] text-white font-bold py-3 px-4 rounded-xl shadow-lg transition flex justify-center items-center">
+        Authenticate
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorBox');
+      
+      btn.innerText = 'Verifying...';
+      btn.disabled = true;
+      err.classList.add('hidden');
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      });
+
+      if (res.ok) {
+        window.location.href = '/';
+      } else {
+        const data = await res.json();
+        err.innerText = data.detail || 'Acces respins.';
+        err.classList.remove('hidden');
+        btn.innerText = 'Authenticate';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
